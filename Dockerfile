@@ -37,6 +37,17 @@ WORKDIR /home/zulip/zulip
 
 ARG CUSTOM_CA_CERTIFICATES
 
+# --- START OF FIX ---
+# Switch to root to install system dependencies required for building Python packages like xmlsec.
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxml2-dev \
+    libxmlsec1-dev \
+    pkg-config
+# Switch back to the zulip user to run the provisioning scripts.
+USER zulip
+# --- END OF FIX ---
+
 # Finally, we provision the development environment and build a release tarball
 RUN SKIP_VENV_SHELL_WARNING=1 ./tools/provision --build-release-tarball-only && \
     uv run --no-sync ./tools/build-release-tarball docker && \
